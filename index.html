@@ -1,0 +1,798 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="slides-format" content="viewport">
+    <title>gsq — K-Beauty ASEAN One-Channel Platform</title>
+    <!-- Aptos is a Microsoft font; use closest available web equivalent: Inter for body, Cormorant for display -->
+    <!-- We'll use system Aptos with Inter fallback -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <style type="text/tailwindcss">
+        @theme {
+            --color-bg: #f9f8f6;
+            --color-bg-deep: #f2f0ec;
+            --color-surface: #ffffff;
+            --color-text: #1a1a1a;
+            --color-text-secondary: #4a4a4a;
+            --color-text-muted: #8a8a8a;
+            --color-accent-1: #1a1a1a;
+            --color-accent-2: #f0b400;
+            --color-purple: #7c69c5;
+            --color-soft-gray: #ece9e4;
+            --color-accent-3: #6b6b6b;
+            --color-glass-bg: rgba(255,255,255,0.85);
+            --color-glass-border: rgba(0,0,0,0.07);
+            --color-vignette: rgba(0,0,0,0.04);
+            --font-display: 'Aptos', 'Inter', system-ui, sans-serif;
+            --font-body: 'Aptos', 'Inter', system-ui, sans-serif;
+        }
+    
+        .brochure-frame{width:min(100vw,calc(100vh * 0.707));height:min(100vh,calc(100vw / 0.707));aspect-ratio:707 / 1000;margin:auto;position:relative;background:#f4f1eb;overflow:hidden;}
+        .page-surface{position:absolute;inset:0;display:grid;grid-template-columns:minmax(0,1fr) 26%;}
+        .page-main{min-width:0;padding:8.5% 8% 7% 8%;display:flex;flex-direction:column;justify-content:flex-start;overflow:hidden;}
+        .page-side{min-width:0;padding:12% 9% 10% 9%;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-start;}
+        .page-side *{max-width:100%;word-break:keep-all;overflow-wrap:anywhere;}
+        .page-main *{max-width:100%;word-break:keep-all;overflow-wrap:anywhere;}
+        .cover-side-list{display:flex;flex-direction:column;gap:1.4rem;align-items:flex-start;margin-top:22rem;}
+        .closing-side-card{width:100%;margin-top:auto;}
+        @media (max-width: 960px){
+          .brochure-frame{width:100vw;height:auto;min-height:100dvh;aspect-ratio:auto;}
+          .page-surface{position:relative;grid-template-columns:1fr;min-height:100dvh;}
+          .page-main{padding:12vw 7vw 8vw 7vw;}
+          .page-side{padding:6vw 7vw 10vw 7vw;border-left:none !important;border-top:4px solid #d19900;min-height:auto;}
+          .cover-side-list{margin-top:2rem;gap:1rem;}
+          .closing-side-card{margin-top:2rem;}
+        }
+        @media (max-width: 520px){
+          .page-main{padding:14vw 6vw 8vw 6vw;}
+          .page-side{padding:7vw 6vw 10vw 6vw;}
+        }
+
+    </style>
+    <style>
+        @font-face {
+            font-family: 'Aptos';
+            src: local('Aptos'), local('Aptos Regular');
+            font-weight: 400;
+        }
+        @font-face {
+            font-family: 'Aptos';
+            src: local('Aptos Bold'), local('Aptos-Bold');
+            font-weight: 700;
+        }
+
+        :root {
+            --color-bg: #f9f8f6;
+            --color-text: #1a1a1a;
+            --glow-color-rgb: 240,180,0;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body { background: var(--color-bg); margin: 0; }
+        html { scroll-behavior: smooth; }
+        body { font-family: 'Aptos', 'Inter', system-ui, sans-serif; color: #1a1a1a; overflow-x: hidden; }
+
+        /* ─── Deck system (scroll-based) ─── */
+        .deck { width: 100%; position: relative; }
+        .slide { position: relative; width: 100%; min-height: 100vh; background: #f9f8f6; display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden; }
+        .slide.active { /* kept for backward compat with reveal trigger */ }
+        .slide > .content { position: relative; z-index: 2; width: 100%; max-width: 1060px; padding: clamp(2rem, 4vw, 4.5rem); }
+
+        /* ─── Navigation ─── */
+        .nav-controls { position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; z-index: 100; background: rgba(255,255,255,0.9); backdrop-filter: blur(10px); padding: 8px 20px; border-radius: 40px; border: 1px solid rgba(0,0,0,0.08); box-shadow: 0 2px 12px rgba(0,0,0,0.06); }
+        .nav-btn { width: 34px; height: 34px; border: none; background: transparent; color: #1a1a1a; border-radius: 50%; font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s; }
+        .nav-btn:hover { background: rgba(0,0,0,0.06); }
+        .slide-dots { display: flex; gap: 6px; }
+        .slide-dots .dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(0,0,0,0.15); cursor: pointer; transition: background 0.25s, transform 0.25s; }
+        .slide-dots .dot.active { background: #1a1a1a; transform: scale(1.35); }
+        .slide-counter { font-size: 0.72rem; color: #8a8a8a; min-width: 32px; text-align: center; font-family: 'Aptos', 'Inter', sans-serif; letter-spacing: 0.04em; }
+        .reveal { opacity: 0; transform: translateY(14px); }
+
+        /* ─── Watermark logo ─── */
+        .wm { position: absolute; bottom: 48px; right: 48px; z-index: 3; opacity: 0.07; font-family: 'Aptos', 'Inter', sans-serif; font-size: 3.2rem; font-weight: 700; letter-spacing: -0.03em; color: #1a1a1a; pointer-events: none; user-select: none; display: none; }
+        /* Alternate: small logo mark top right */
+        .logo-mark { position: absolute; top: 30px; right: 42px; z-index: 3; font-family: 'Aptos', 'Inter', sans-serif; font-size: 0.82rem; font-weight: 700; letter-spacing: 0.06em; color: rgba(0,0,0,0.2); pointer-events: none; text-transform: lowercase; display: none; }
+
+        /* ─── Divider ─── */
+        .rule { display: block; width: 36px; height: 2px; background: #1a1a1a; border-radius: 2px; margin-bottom: 1.4rem; }
+        .rule-gold { display: block; width: 36px; height: 2px; background: #f0b400; border-radius: 2px; margin-bottom: 1.4rem; }
+        .rule-lg { display: block; width: 56px; height: 2px; background: #1a1a1a; border-radius: 2px; }
+
+        /* ─── Section label ─── */
+        .sec-label { font-size: 0.68rem; letter-spacing: 0.18em; text-transform: uppercase; color: #8a8a8a; font-weight: 500; margin-bottom: 0.7rem; display: block; }
+
+        /* ─── Grid cards (light) ─── */
+        .card-grid-3 { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; }
+        .card-grid-2 { display: grid; grid-template-columns: repeat(2,1fr); gap: 1rem; }
+        .card-grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 0.85rem; }
+
+        .card { background: #ffffff; border: 1px solid rgba(0,0,0,0.07); border-radius: 10px; padding: 1.4rem 1.5rem; transition: border-color 0.2s, transform 0.2s, box-shadow 0.2s; }
+        .card:hover { border-color: rgba(0,0,0,0.15); transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.06); }
+        .card-dark { background: #1a1a1a; border-radius: 10px; padding: 1.4rem 1.5rem; }
+        .card-gold { background: #f0b400; border-radius: 10px; padding: 1.4rem 1.5rem; }
+
+        /* ─── Step flow (horizontal) ─── */
+        .step-flow { display: grid; grid-template-columns: repeat(6,1fr); gap: 0; align-items: start; }
+        .step-item { display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; padding: 0 0.3rem; }
+        .step-item:not(:last-child)::after { content: '→'; position: absolute; right: -10px; top: 13px; color: rgba(0,0,0,0.25); font-size: 0.85rem; z-index: 1; }
+        .step-num { width: 32px; height: 32px; border-radius: 50%; background: #1a1a1a; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; margin-bottom: 0.55rem; flex-shrink: 0; }
+
+        /* ─── Country cards ─── */
+        .country-card { background: #ffffff; border: 1px solid rgba(0,0,0,0.07); border-top: 3px solid #1a1a1a; border-radius: 0 0 10px 10px; padding: 1.2rem 1.3rem; }
+        .country-card.gold { border-top-color: #f0b400; }
+
+        /* ─── Collab cards ─── */
+        .collab-card { background: #ffffff; border: 1px solid rgba(0,0,0,0.07); border-left: 3px solid; border-radius: 0 10px 10px 0; padding: 1.3rem 1.5rem; }
+
+        /* ─── Why list ─── */
+        .why-row { display: flex; gap: 1rem; align-items: flex-start; padding: 0.85rem 1rem; border-radius: 8px; transition: background 0.15s; }
+        .why-row:hover { background: rgba(0,0,0,0.03); }
+        .why-num { width: 26px; height: 26px; border-radius: 50%; background: #1a1a1a; color: #ffffff; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+        /* ─── Gradient mesh (very subtle for light theme) ─── */
+        @keyframes float-slow { 0%{transform:translate(0,0) scale(1)} 30%{transform:translate(30px,-20px) scale(1.04)} 60%{transform:translate(-20px,25px) scale(0.97)} 100%{transform:translate(0,0) scale(1)} }
+        .gradient-mesh { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+        .blob { position: absolute; border-radius: 50%; filter: blur(100px); animation: float-slow 16s ease-in-out infinite; }
+
+        /* ─── Cover accent shape ─── */
+        .cover-block { position: absolute; right: 0; top: 0; width: 38%; height: 100%; background: #1a1a1a; z-index: 0; }
+        .cover-gold-bar { position: absolute; right: 38%; top: 0; width: 4px; height: 100%; background: #f0b400; z-index: 1; }
+
+        /* surff.kr powered-by badge (slide 5) */
+        .surff-badge { transition: opacity 0.2s, transform 0.2s; opacity: 0.85; }
+        .surff-badge:hover { opacity: 1; transform: translateY(-1px); }
+
+        /* Kakao CTA button (slide 9) */
+        .kakao-cta:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(254,229,0,0.45) !important; }
+        .kakao-cta:active { transform: translateY(0); }
+
+        /* ─── Language toggle (KO / EN) ─── */
+        .lang-toggle { position: fixed; top: 18px; right: 18px; z-index: 200; display: flex; background: rgba(255,255,255,0.92); backdrop-filter: blur(10px); border: 1px solid rgba(0,0,0,0.08); border-radius: 20px; padding: 3px; box-shadow: 0 2px 10px rgba(0,0,0,0.06); font-family: 'Aptos','Inter',sans-serif; }
+        .lang-toggle button { border: none; background: transparent; padding: 5px 11px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; color: #8a8a8a; cursor: pointer; border-radius: 16px; transition: background 0.2s, color 0.2s; font-family: inherit; }
+        .lang-toggle button.active { background: #1a1a1a; color: #ffffff; }
+        .lang-toggle button:hover:not(.active) { color: #1a1a1a; }
+        @media (max-width: 640px) { .lang-toggle { top: 12px; right: 12px; padding: 2px; } .lang-toggle button { padding: 4px 9px; font-size: 0.65rem; } }
+
+        @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.1s !important; } }
+
+        /* ════════════════════════════════════════════
+           RESPONSIVE — natural rendering on tablet & mobile
+           ════════════════════════════════════════════ */
+        @media (max-width: 1024px) {
+            .slide { min-height: auto; padding: 3rem 0; }
+            .slide > .content { padding: 1.75rem 1.25rem; }
+
+            /* COVER / CLOSING slides (slide-1, slide-9): hide absolute dark panel, stack content */
+            .slide-1 .cover-block, .slide-1 .cover-gold-bar,
+            .slide-9 .cover-block, .slide-9 .cover-gold-bar { display: none; }
+            .slide-1 > .content,
+            .slide-9 > .content {
+                grid-template-columns: 1fr !important;
+                gap: 1.5rem !important;
+                padding: 2.5rem 1.25rem !important;
+            }
+            .slide-1 > .content > div:nth-child(1),
+            .slide-9 > .content > div:nth-child(1) {
+                padding-right: 0 !important;
+            }
+            .slide-1 > .content > div:nth-child(2),
+            .slide-9 > .content > div:nth-child(2) {
+                padding: 2rem 1.5rem !important;
+                background: #1a1a1a;
+                border-left: 4px solid #f0b400;
+                border-radius: 8px;
+            }
+
+            /* OVERVIEW (slide-2): 2-column → 1-column */
+            .slide-2 > .content > div[style*="grid-template-columns"] {
+                grid-template-columns: 1fr !important;
+                gap: 2rem !important;
+            }
+
+            /* PROBLEM (slide-3) & SERVICE (slide-5): 3-column cards → 1-column */
+            .card-grid-3 { grid-template-columns: 1fr !important; }
+
+            /* ONE-CHANNEL (slide-4): 6-step horizontal flow → 2-column grid */
+            .step-flow { grid-template-columns: repeat(2, 1fr) !important; gap: 1.5rem 1rem !important; }
+            .step-item:not(:last-child)::after { display: none; }
+            /* slide-4 stats row (3 numbers): keep 3 cols, still fits */
+            .slide-4 > .content > div[style*="grid-template-columns:repeat(3,1fr)"] {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 0.75rem !important;
+            }
+
+            /* COUNTRY (slide-6): 4-column → 2-column */
+            .card-grid-4 { grid-template-columns: repeat(2, 1fr) !important; }
+
+            /* COLLAB (slide-7): 3-column → 1-column */
+            .slide-7 > .content > div[style*="grid-template-columns:repeat(3,1fr)"] {
+                grid-template-columns: 1fr !important;
+            }
+
+            /* Watermarks visible but smaller */
+            .wm { font-size: 2rem; bottom: 20px; right: 20px; }
+            .logo-mark { top: 18px; right: 20px; font-size: 0.72rem; }
+        }
+
+        @media (max-width: 640px) {
+            .slide > .content { padding: 1.5rem 1rem; }
+            .step-flow { grid-template-columns: 1fr !important; }
+            .card-grid-4 { grid-template-columns: 1fr !important; }
+            /* Stats row stays 3-col since digits are short */
+        }
+
+        /* Hide deck-style nav on mobile (scroll is natural) — keep on desktop as section jumper */
+        @media (max-width: 768px) {
+            .nav-controls { display: none; }
+        }
+    </style>
+<style>@page{size:A4 portrait;margin:0;}</style></head>
+<body>
+
+<div class="lang-toggle" id="langToggle" role="group" aria-label="Language selection">
+    <button type="button" data-lang="ko" class="active" aria-label="한국어">KO</button>
+    <button type="button" data-lang="en" aria-label="English">EN</button>
+</div>
+
+<div class="deck">
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 1: COVER
+    ══════════════════════════════════════════ -->
+    <div class="slide slide-1 active" data-slide="1">
+        <!-- Dark right panel -->
+        <div class="cover-block"></div>
+        <div class="cover-gold-bar"></div>
+        <div class="content" style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:0;align-items:center;padding-right:0;">
+            <!-- Left: white side -->
+            <div style="padding-right:3rem;">
+                <div style="font-size:0.68rem;letter-spacing:0.2em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:2rem;" class="reveal">Company Profile</div>
+                <!-- gsq logo wordmark -->
+                <div class="reveal" style="width:min(320px,85%);display:block;margin-bottom:1.35rem;font-family:'Anton','Aptos','Inter',sans-serif;font-size:clamp(3.2rem,7vw,5.6rem);line-height:0.95;letter-spacing:-0.03em;color:#111;">gsq</div>
+                <span class="rule reveal" style="background:linear-gradient(90deg,#1a1a1a,#7c69c5);"></span>
+                <h1 style="font-size:clamp(1.1rem,2.2vw,1.55rem);font-weight:400;color:#1a1a1a;line-height:1.5;margin-bottom:1.6rem;" class="reveal">K-Beauty ASEAN<br>One-Channel Platform</h1>
+                <p style="font-size:0.85rem;color:#6b6b6b;line-height:1.7;max-width:380px;word-break:keep-all;" class="reveal"><span data-ko="K-Beauty 브랜드의 동남아시아 진출부터 컴플라이언스, 현지 운영까지 하나의 채널로 연결하는 B2B 실행 플랫폼" data-en="A B2B execution platform connecting K-Beauty brands&#x27; Southeast Asia entry, compliance, and local operations through a single channel">K-Beauty 브랜드의 동남아시아 진출부터 컴플라이언스, 현지 운영까지 하나의 채널로 연결하는 B2B 실행 플랫폼</span></p>
+            </div>
+            <!-- Right: dark side -->
+            <div style="position:relative;z-index:2;padding-left:3.5rem;padding-right:3rem;">
+                <div style="margin-bottom:2rem;" class="reveal">
+                    <div style="font-size:0.68rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.4);font-weight:500;margin-bottom:0.7rem;">Operating Markets</div>
+                    <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                        <div style="display:flex;align-items:center;gap:0.7rem;"><span style="width:20px;height:1px;background:#7c69c5;display:inline-block;"></span><span style="font-size:0.88rem;color:#ffffff;font-weight:500;">Singapore</span></div>
+                        <div style="display:flex;align-items:center;gap:0.7rem;"><span style="width:20px;height:1px;background:#7c69c5;display:inline-block;"></span><span style="font-size:0.88rem;color:#ffffff;font-weight:500;">Malaysia</span></div>
+                        <div style="display:flex;align-items:center;gap:0.7rem;"><span style="width:20px;height:1px;background:#7c69c5;display:inline-block;"></span><span style="font-size:0.88rem;color:#ffffff;font-weight:500;">Thailand</span></div>
+                        <div style="display:flex;align-items:center;gap:0.7rem;"><span style="width:20px;height:1px;background:#7c69c5;display:inline-block;"></span><span style="font-size:0.88rem;color:#ffffff;font-weight:500;">Vietnam</span></div>
+                    </div>
+                </div>
+                
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 2: OVERVIEW
+    ══════════════════════════════════════════ -->
+    <div class="slide slide-2" data-slide="2">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:500px;height:500px;top:-100px;right:-100px;background:#ece9e4;opacity:0.6;"></div>
+        </div>
+        <div class="wm" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.05;">gsq</div>
+        <div class="logo-mark" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.16;">gsq</div>
+        <div class="content">
+            <div style="display:grid;grid-template-columns:1fr 1.15fr;gap:4rem;align-items:start;">
+                <div>
+                    <span class="sec-label reveal">Overview</span>
+                    <span class="rule reveal" style="background:linear-gradient(90deg,#1a1a1a,#7c69c5);"></span>
+                    <h2 style="font-size:clamp(1.6rem,3vw,2.3rem);font-weight:700;color:#1a1a1a;line-height:1.25;margin-bottom:1.4rem;" class="reveal"><span data-ko="K-Beauty 동남아 진출의 실행 파트너" data-en="Execution Partner for K-Beauty&#x27;s Southeast Asia Expansion">K-Beauty 동남아 진출의 실행 파트너</span></h2>
+                    <p style="font-size:0.88rem;color:#4a4a4a;line-height:1.8;margin-bottom:1.2rem;" class="reveal"><span data-ko="gsq는 K-Beauty 브랜드의 동남아시아 진출을 위해 컴플라이언스와 현지 운영 인프라를 하나의 실행 체계로 연결하는 원채널 플랫폼입니다." data-en="gsq is a one-channel platform that connects compliance and local operations infrastructure into a single execution system for K-Beauty brands entering Southeast Asia.">gsq는 K-Beauty 브랜드의 동남아시아 진출을 위해 컴플라이언스와 현지 운영 인프라를 하나의 실행 체계로 연결하는 원채널 플랫폼입니다.</span></p>
+                    <p style="font-size:0.85rem;color:#6b6b6b;line-height:1.8;" class="reveal"><span data-ko="상품등록·수입통관·유통대행부터 현지 행정 이슈 대응, 창고·유통 인프라 운영, 판매채널 확장까지 하나의 흐름으로 관리합니다. 소규모 정예 체계로 빠르고 정교한 실행을 지향합니다." data-en="From product registration, import clearance, and distribution to local administrative issue handling, warehouse operations, and sales channel expansion — all managed in one flow. We pursue fast, precise execution with a lean expert team.">상품등록·수입통관·유통대행부터 현지 행정 이슈 대응, 창고·유통 인프라 운영, 판매채널 확장까지 하나의 흐름으로 관리합니다. 소규모 정예 체계로 빠르고 정교한 실행을 지향합니다.</span></p>
+                </div>
+                <div style="display:flex;flex-direction:column;gap:0.75rem;">
+                    <div class="card reveal" style="border-top:2px solid #1a1a1a;">
+                        <div style="font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.35rem;">Compliance</div>
+                        <div style="font-size:0.79rem;font-weight:600;color:#1a1a1a;line-height:1.55;word-break:keep-all;"><span data-ko="상품등록, 수입통관, 유통대행, 행정 이슈 대응" data-en="Product registration, import clearance, distribution, administrative issue handling">상품등록, 수입통관, 유통대행, 행정 이슈 대응</span></div>
+                    </div>
+                    <div class="card reveal" style="border-top:2px solid #1a1a1a;">
+                        <div style="font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.35rem;">Infrastructure</div>
+                        <div style="font-size:0.79rem;font-weight:600;color:#1a1a1a;line-height:1.55;word-break:keep-all;"><span data-ko="4PL형 운영 지원 창고" data-en="4PL-style operational support warehouse">4PL형 운영 지원 창고</span></div>
+                    </div>
+                    <div class="card reveal" style="border-top:2px solid #1a1a1a;">
+                        <div style="font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.35rem;">Channel Operations</div>
+                        <div style="font-size:0.79rem;font-weight:600;color:#1a1a1a;line-height:1.55;word-break:keep-all;"><span data-ko="판매채널 운영대행, 확장, 총판 유통" data-en="Sales channel operations, expansion, distribution partnership">판매채널 운영대행, 확장, 총판 유통</span></div>
+                    </div>
+                    <div class="card reveal" style="border-top:2px solid #f0b400;background:#fcfaf4;">
+                        <div style="font-size:0.7rem;letter-spacing:0.12em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.35rem;">Coverage</div>
+                        <div style="font-size:0.82rem;font-weight:700;color:#1a1a1a;word-break:keep-all;"><span data-ko="4개국 운영, 싱가포르 &lt;span style=&quot;color:#c89000;&quot;&gt;200+&lt;/span&gt; 브랜드/고객사 경험" data-en="4 countries operating, &lt;span style=&quot;color:#c89000;&quot;&gt;200+&lt;/span&gt; brands/clients in Singapore">4개국 운영, 싱가포르 <span style="color:#c89000;">200+</span> 브랜드/고객사 경험</span></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 3: PROBLEM — THE CHALLENGE
+    ══════════════════════════════════════════ -->
+    <div class="slide slide-3" data-slide="3">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:400px;height:400px;bottom:-100px;left:-80px;background:#ece9e4;opacity:0.55;"></div>
+        </div>
+        <div class="wm" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.05;">gsq</div>
+        <div class="logo-mark" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.16;">gsq</div>
+        <div class="content">
+            <span class="sec-label reveal">The Challenge</span>
+            <span class="rule reveal" style="background:linear-gradient(90deg,#1a1a1a,#7c69c5);"></span>
+            <h2 style="font-size:clamp(1.6rem,3vw,2.3rem);font-weight:700;color:#1a1a1a;line-height:1.25;margin-bottom:0.6rem;" class="reveal"><span data-ko="K-Beauty 동남아 진출, 실행 체계가 핵심입니다" data-en="K-Beauty Southeast Asia Entry: Execution Is the Key">K-Beauty 동남아 진출, 실행 체계가 핵심입니다</span></h2>
+            <p style="font-size:0.85rem;color:#6b6b6b;line-height:1.7;margin-bottom:1.6rem;" class="reveal"><span data-ko="규제, 수입 구조, 물류, 판매채널이 분절되면 시장 진입은 느려지고 매출 전환도 지연됩니다." data-en="When regulations, import structure, logistics, and sales channels are fragmented, market entry slows and sales conversion is delayed.">규제, 수입 구조, 물류, 판매채널이 분절되면 시장 진입은 느려지고 매출 전환도 지연됩니다.</span></p>
+            <div class="card-grid-3">
+                <div class="card reveal" style="border-top:2px solid #1a1a1a;">
+                    <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.6rem;">A — Regulatory</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:#1a1a1a;margin-bottom:0.5rem;"><span data-ko="복잡한 국가별 규정" data-en="Complex Country-by-Country Regulations">복잡한 국가별 규정</span></div>
+                    <p style="font-size:0.74rem;color:#4a4a4a;line-height:1.7;margin:0;word-break:keep-all;"><span data-ko="Singapore HSA, Malaysia NPRA, Thailand FDA, Vietnam DAV — 국가마다 준비 기준과 절차가 다릅니다. 어디서, 누구에게 물어봐야 하는지부터 불명확합니다." data-en="Singapore HSA, Malaysia NPRA, Thailand FDA, Vietnam DAV — preparation standards and procedures vary by country. Even knowing where and whom to ask is unclear.">Singapore HSA, Malaysia NPRA, Thailand FDA, Vietnam DAV — 국가마다 준비 기준과 절차가 다릅니다. 어디서, 누구에게 물어봐야 하는지부터 불명확합니다.</span></p>
+                </div>
+                <div class="card reveal" style="border-top:2px solid #1a1a1a;">
+                    <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.6rem;">B — Operations</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:#1a1a1a;margin-bottom:0.5rem;"><span data-ko="수입·물류·운영의 분절" data-en="Fragmented Import, Logistics, and Operations">수입·물류·운영의 분절</span></div>
+                    <p style="font-size:0.74rem;color:#4a4a4a;line-height:1.7;margin:0;word-break:keep-all;"><span data-ko="운송사, 수입대행사, 창고, 판매채널 운영사가 모두 다릅니다. 정보는 쪼개지고 책임 소재는 불명확해집니다. 브랜드 담당자가 직접 코디네이션에 투입됩니다." data-en="Shippers, import agents, warehouses, and channel operators are all separate. Information becomes fragmented and accountability blurred. Brand managers end up doing direct coordination.">운송사, 수입대행사, 창고, 판매채널 운영사가 모두 다릅니다. 정보는 쪼개지고 책임 소재는 불명확해집니다. 브랜드 담당자가 직접 코디네이션에 투입됩니다.</span></p>
+                </div>
+                <div class="card reveal" style="border-top:2px solid #f0b400;background:#fcfaf4;">
+                    <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.6rem;">C — Sales Conversion</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:#1a1a1a;margin-bottom:0.5rem;"><span data-ko="진입 후 매출 전환 지연" data-en="Delayed Sales Conversion After Entry">진입 후 매출 전환 지연</span></div>
+                    <p style="font-size:0.74rem;color:#4a4a4a;line-height:1.7;margin:0;word-break:keep-all;"><span data-ko="Shopee, Lazada, TikTok Shop 등 채널 진입까지 평균 90일 이상 소요됩니다. 수입 완료 이후 실제 매출이 발생하기까지의 전환 구간이 너무 깁니다." data-en="Reaching Shopee, Lazada, TikTok Shop and other channels takes 90+ days on average. The gap between import completion and actual sales is too long.">Shopee, Lazada, TikTok Shop 등 채널 진입까지 평균 90일 이상 소요됩니다. 수입 완료 이후 실제 매출이 발생하기까지의 전환 구간이 너무 깁니다.</span></p>
+                </div>
+            </div>
+            <div style="margin-top:1.2rem;padding:0.9rem 1.2rem;background:#1a1a1a;border-radius:8px;" class="reveal">
+                <p style="font-size:0.8rem;color:rgba(255,255,255,0.8);line-height:1.65;margin:0;"><span data-ko="&lt;strong style=&quot;color:#f0b400;&quot;&gt;gsq 접근:&lt;/strong&gt; 분절된 기능을 하나의 운영 흐름으로 연결합니다. 수출 준비에서 현지 판매 실행까지 단일 파트너 체계로 관리할 수 있습니다." data-en="&lt;strong style=&quot;color:#f0b400;&quot;&gt;gsq approach:&lt;/strong&gt; We connect fragmented functions into a single operational flow. From export preparation to local sales execution — all managed under a single partner."><strong style="color:#f0b400;">gsq 접근:</strong> 분절된 기능을 하나의 운영 흐름으로 연결합니다. 수출 준비에서 현지 판매 실행까지 단일 파트너 체계로 관리할 수 있습니다.</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 4: ONE CHANNEL PLATFORM
+    ══════════════════════════════════════════ -->
+    <div class="slide slide-4" data-slide="4">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:450px;height:450px;top:-80px;right:-80px;background:#ece9e4;opacity:0.5;"></div>
+        </div>
+        <div class="wm" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.05;">gsq</div>
+        <div class="logo-mark" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.16;">gsq</div>
+        <div class="content">
+            <span class="sec-label reveal">gsq Solution</span>
+            <span class="rule reveal" style="background:linear-gradient(90deg,#1a1a1a,#7c69c5);"></span>
+            <h2 style="font-size:clamp(1.6rem,3vw,2.3rem);font-weight:700;color:#1a1a1a;line-height:1.25;margin-bottom:0.6rem;" class="reveal">One-Channel Platform</h2>
+            <p style="font-size:0.85rem;color:#6b6b6b;line-height:1.7;margin-bottom:1.8rem;" class="reveal"><span data-ko="K-Beauty 브랜드의 시장진입, 컴플라이언스, 유통 운영을 하나의 체계로 연결합니다" data-en="Connecting K-Beauty brands&#x27; market entry, compliance, and distribution operations into a single system">K-Beauty 브랜드의 시장진입, 컴플라이언스, 유통 운영을 하나의 체계로 연결합니다</span></p>
+
+            <div class="step-flow reveal">
+                <div class="step-item">
+                    <div class="step-num">01</div>
+                    <div style="font-size:0.73rem;font-weight:700;color:#1a1a1a;margin-bottom:0.3rem;line-height:1.3;">Freight Quote</div>
+                    <div style="font-size:0.63rem;color:#6b6b6b;line-height:1.5;word-break:keep-all;"><span data-ko="최적 운송 Route 및 자동 견적 안내, 단독 콘솔 운영" data-en="Optimal route guidance, automated quotes, dedicated console">최적 운송 Route 및 자동 견적 안내, 단독 콘솔 운영</span></div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">02</div>
+                    <div style="font-size:0.73rem;font-weight:700;color:#1a1a1a;margin-bottom:0.3rem;line-height:1.3;">Regulatory Review</div>
+                    <div style="font-size:0.68rem;color:#6b6b6b;line-height:1.5;word-break:keep-all;"><span data-ko="국가별 규정 검토&lt;br&gt;라벨·분류 가이드" data-en="Country regulation review&lt;br&gt;Labeling &amp; classification">국가별 규정 검토<br>라벨·분류 가이드</span></div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num">03</div>
+                    <div style="font-size:0.73rem;font-weight:700;color:#1a1a1a;margin-bottom:0.3rem;line-height:1.3;">Import Setup</div>
+                    <div style="font-size:0.68rem;color:#6b6b6b;line-height:1.5;word-break:keep-all;"><span data-ko="수입 구조 설계&lt;br&gt;통관·수입 연계" data-en="Import structure design&lt;br&gt;Customs &amp; import coordination">수입 구조 설계<br>통관·수입 연계</span></div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num" style="background:#f0b400;color:#1a1a1a;">04</div>
+                    <div style="font-size:0.73rem;font-weight:700;color:#1a1a1a;margin-bottom:0.3rem;line-height:1.3;">Local Operations</div>
+                    <div style="font-size:0.68rem;color:#6b6b6b;line-height:1.5;word-break:keep-all;"><span data-ko="창고 운영&lt;br&gt;보관·피킹·출고" data-en="Warehouse operations&lt;br&gt;Storage, picking, dispatch">창고 운영<br>보관·피킹·출고</span></div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num" style="background:#f0b400;color:#1a1a1a;">05</div>
+                    <div style="font-size:0.73rem;font-weight:700;color:#1a1a1a;margin-bottom:0.3rem;line-height:1.3;word-break:keep-all;">Channel<br>Expansion</div>
+                    <div style="font-size:0.68rem;color:#6b6b6b;line-height:1.5;word-break:keep-all;"><span data-ko="채널 확장&lt;br&gt;전략 자문·운영대행" data-en="Channel expansion&lt;br&gt;Strategic advisory &amp; operations">채널 확장<br>전략 자문·운영대행</span></div>
+                </div>
+                <div class="step-item">
+                    <div class="step-num" style="background:#f0b400;color:#1a1a1a;">06</div>
+                    <div style="font-size:0.73rem;font-weight:700;color:#1a1a1a;margin-bottom:0.3rem;line-height:1.3;word-break:keep-all;">Distribution</div>
+                    <div style="font-size:0.68rem;color:#6b6b6b;line-height:1.5;word-break:keep-all;"><span data-ko="gsq 온/오프라인 총판 연계" data-en="gsq online/offline distribution network">gsq 온/오프라인 총판 연계</span></div>
+                </div>
+            </div>
+
+            <!-- Key stats row -->
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:1.8rem;" class="reveal">
+                <div style="border-top:2px solid #1a1a1a;padding-top:0.85rem;">
+                    <div style="font-size:1.8rem;font-weight:700;color:#1a1a1a;line-height:1;display:inline-flex;align-items:baseline;"><span data-count="200">0</span><span>+</span></div>
+                    <div style="font-size:0.72rem;color:#6b6b6b;margin-top:0.3rem;letter-spacing:0.04em;"><span data-ko="싱가포르 취급 브랜드 수" data-en="Brands handled in Singapore">싱가포르 취급 브랜드 수</span></div>
+                </div>
+                <div style="border-top:2px solid #1a1a1a;padding-top:0.85rem;">
+                    <div style="font-size:1.8rem;font-weight:700;color:#1a1a1a;line-height:1;">4</div>
+                    <div style="font-size:0.72rem;color:#6b6b6b;margin-top:0.3rem;letter-spacing:0.04em;"><span data-ko="현재 운영 국가" data-en="Countries currently operating">현재 운영 국가</span></div>
+                </div>
+                <div style="border-top:2px solid #f0b400;padding-top:0.85rem;">
+                    <div style="font-size:1.8rem;font-weight:700;color:#1a1a1a;line-height:1;">1</div>
+                    <div style="font-size:0.72rem;color:#6b6b6b;margin-top:0.3rem;letter-spacing:0.04em;"><span data-ko="전 단계 단일 파트너 관리" data-en="Single partner across all stages">전 단계 단일 파트너 관리</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 5: SERVICE PORTFOLIO
+    ══════════════════════════════════════════ -->
+    <div class="slide slide-5" data-slide="5">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:380px;height:380px;bottom:-80px;right:-60px;background:#ece9e4;opacity:0.5;"></div>
+        </div>
+        <div class="wm" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.05;">gsq</div>
+        <div class="logo-mark" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.16;">gsq</div>
+        <div class="content">
+            <span class="sec-label reveal">Service Portfolio</span>
+            <span class="rule reveal" style="background:linear-gradient(90deg,#1a1a1a,#7c69c5);"></span>
+            <h2 style="font-size:clamp(1.6rem,3vw,2.3rem);font-weight:700;color:#1a1a1a;line-height:1.25;margin-bottom:1.4rem;" class="reveal"><span data-ko="핵심 서비스 구조" data-en="Core Service Structure">핵심 서비스 구조</span></h2>
+            <div class="card-grid-3">
+                <div class="card reveal">
+                    <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.5rem;">01</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:#1a1a1a;margin-bottom:0.4rem;word-break:keep-all;">Market Entry Advisory</div>
+                    <p style="font-size:0.77rem;color:#4a4a4a;line-height:1.7;margin:0;word-break:keep-all;"><span data-ko="국가별 규제 및 상품 분류 검토, 라벨링·인허가 사전 준비 가이드 제공" data-en="Country-specific regulation and product classification review; labeling and licensing preparation guidance">국가별 규제 및 상품 분류 검토, 라벨링·인허가 사전 준비 가이드 제공</span></p>
+                </div>
+                <div class="card reveal" style="position:relative;">
+                    <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.5rem;">02</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:#1a1a1a;margin-bottom:0.4rem;word-break:keep-all;">Freight & Export Setup</div>
+                    <p style="font-size:0.77rem;color:#4a4a4a;line-height:1.7;margin:0;word-break:keep-all;padding-right:62px;"><span data-ko="포워딩 견적 및 선적 조건 검토, LCL/FCL 운송 옵션 안내 및 수출 서류 지원" data-en="Forwarding quotes and shipping terms review, LCL/FCL transport options, and export documentation support">포워딩 견적 및 선적 조건 검토, LCL/FCL 운송 옵션 안내 및 수출 서류 지원</span></p>
+                    <a href="https://surff.kr" target="_blank" rel="noopener" class="surff-badge" aria-label="powered by surff.kr" style="position:absolute;right:0.9rem;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;align-items:center;text-decoration:none;line-height:1;">
+                        <span style="font-size:0.52rem;letter-spacing:0.1em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.35rem;white-space:nowrap;">powered by</span>
+                        <img src="data:image/jpeg;base64,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" alt="surff" style="height:22px;width:auto;max-width:80px;display:block;object-fit:contain;">
+                    </a>
+                </div>
+                <div class="card reveal">
+                    <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.5rem;">03</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:#1a1a1a;margin-bottom:0.4rem;word-break:keep-all;">Importer of Record</div>
+                    <p style="font-size:0.77rem;color:#4a4a4a;line-height:1.7;margin:0;word-break:keep-all;"><span data-ko="현지 수입·유통 법적 책임 주체로서 계약 기반 수입대행 및 규정 준수 운영 지원" data-en="Acting as the legal entity for local import and distribution, with contract-based import services and compliance support">현지 수입·유통 법적 책임 주체로서 계약 기반 수입대행 및 규정 준수 운영 지원</span></p>
+                </div>
+                <div class="card reveal">
+                    <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.5rem;">04</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:#1a1a1a;margin-bottom:0.4rem;word-break:keep-all;">Warehousing & Fulfilment</div>
+                    <p style="font-size:0.77rem;color:#4a4a4a;line-height:1.7;margin:0;word-break:keep-all;"><span data-ko="현지 입고·보관·재고 운영, 피킹·패킹·라스트마일 연계, 4PL형 통합 운영 지원" data-en="Local receiving, storage, inventory management, picking, packing, last-mile coordination, and 4PL integrated operations">현지 입고·보관·재고 운영, 피킹·패킹·라스트마일 연계, 4PL형 통합 운영 지원</span></p>
+                </div>
+                <div class="card reveal" style="border-top:2px solid #f0b400;background:#fcfaf4;">
+                    <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.5rem;">05</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:#1a1a1a;margin-bottom:0.4rem;word-break:keep-all;">Channel Strategy & Operations</div>
+                    <p style="font-size:0.77rem;color:#4a4a4a;line-height:1.7;margin:0;word-break:keep-all;"><span data-ko="Shopee, TikTok Shop 등 판매채널 전략 자문 및 운영대행. 상품 리스팅·캠페인 운영 지원" data-en="Channel strategy advisory and operations for Shopee, TikTok Shop, and others. Product listing and campaign management">Shopee, TikTok Shop 등 판매채널 전략 자문 및 운영대행. 상품 리스팅·캠페인 운영 지원</span></p>
+                </div>
+                <div class="card reveal" style="border-top:2px solid #f0b400;background:#fcfaf4;">
+                    <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.5rem;">06</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:#1a1a1a;margin-bottom:0.4rem;word-break:keep-all;">Sales & Distribution</div>
+                    <p style="font-size:0.77rem;color:#4a4a4a;line-height:1.7;margin:0;word-break:keep-all;"><span data-ko="gsq가 직접 운영하는 온·오프라인 채널을 통한 간접 유통 연계 지원" data-en="Indirect distribution through gsq&#x27;s directly operated online and offline channels">gsq가 직접 운영하는 온·오프라인 채널을 통한 간접 유통 연계 지원</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 6: COUNTRY COVERAGE
+    ══════════════════════════════════════════ -->
+    <div class="slide slide-6" data-slide="6">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:420px;height:420px;top:-80px;left:-80px;background:#ece9e4;opacity:0.5;"></div>
+        </div>
+        <div class="wm" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.05;">gsq</div>
+        <div class="logo-mark" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.16;">gsq</div>
+        <div class="content">
+            <span class="sec-label reveal">Regional Capabilities</span>
+            <span class="rule reveal" style="background:linear-gradient(90deg,#1a1a1a,#7c69c5);"></span>
+            <h2 style="font-size:clamp(1.6rem,3vw,2.3rem);font-weight:700;color:#1a1a1a;line-height:1.25;margin-bottom:1.5rem;" class="reveal"><span data-ko="공통 서비스와 국가별 특징" data-en="Common Services &amp; Country Highlights">공통 서비스와 국가별 특징</span></h2>
+            <div style="margin-bottom:1.35rem;" class="reveal">
+                <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.7rem;"><span data-ko="공통 서비스" data-en="Common Services">공통 서비스</span></div>
+                <div style="display:flex;gap:0.7rem;flex-wrap:wrap;">
+                    <span style="border:1px solid rgba(0,0,0,0.12);border-radius:5px;padding:0.35rem 0.85rem;font-size:0.78rem;color:#1a1a1a;font-weight:500;background:#ffffff;word-break:keep-all;"><span data-ko="화장품 인증" data-en="Cosmetics Certification">화장품 인증</span></span>
+                    <span style="border:1px solid rgba(0,0,0,0.12);border-radius:5px;padding:0.35rem 0.85rem;font-size:0.78rem;color:#1a1a1a;font-weight:500;background:#ffffff;word-break:keep-all;"><span data-ko="수입대행" data-en="Import Service">수입대행</span></span>
+                    <span style="border:1px solid rgba(0,0,0,0.12);border-radius:5px;padding:0.35rem 0.85rem;font-size:0.78rem;color:#1a1a1a;font-weight:500;background:#ffffff;word-break:keep-all;"><span data-ko="풀필먼트" data-en="Fulfilment">풀필먼트</span></span>
+                    <span style="border:1px solid rgba(0,0,0,0.12);border-radius:5px;padding:0.35rem 0.85rem;font-size:0.78rem;color:#1a1a1a;font-weight:500;background:#ffffff;word-break:keep-all;"><span data-ko="판매채널 운영" data-en="Channel Operations">판매채널 운영</span></span>
+                </div>
+            </div>
+            <div class="card-grid-4">
+                <div class="country-card reveal">
+                    <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.4rem;">SG</div>
+                    <div style="font-size:0.92rem;font-weight:700;color:#1a1a1a;margin-bottom:0.45rem;">Singapore</div>
+                    <p style="font-size:0.75rem;color:#4a4a4a;line-height:1.65;margin:0;word-break:keep-all;"><span data-ko="재고관리 최적화, 전시회 이벤트 지원" data-en="Inventory optimization, exhibition support">재고관리 최적화, 전시회 이벤트 지원</span></p>
+                </div>
+                <div class="country-card reveal">
+                    <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.4rem;">MY</div>
+                    <div style="font-size:0.92rem;font-weight:700;color:#1a1a1a;margin-bottom:0.45rem;">Malaysia</div>
+                    <p style="font-size:0.75rem;color:#4a4a4a;line-height:1.65;margin:0;word-break:keep-all;"><span data-ko="보세창고 운영, 국가간 재고이동" data-en="Bonded warehouse, cross-border inventory">보세창고 운영, 국가간 재고이동</span></p>
+                </div>
+                <div class="country-card reveal">
+                    <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.4rem;">TH</div>
+                    <div style="font-size:0.92rem;font-weight:700;color:#1a1a1a;margin-bottom:0.45rem;">Thailand</div>
+                    <p style="font-size:0.75rem;color:#4a4a4a;line-height:1.65;margin:0;word-break:keep-all;"><span data-ko="CO/RCEP 원산지 증명 지원, 판매채널 확대" data-en="CO/RCEP origin certification, channel expansion">CO/RCEP 원산지 증명 지원, 판매채널 확대</span></p>
+                </div>
+                <div class="country-card reveal">
+                    <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.4rem;">VN</div>
+                    <div style="font-size:0.92rem;font-weight:700;color:#1a1a1a;margin-bottom:0.45rem;">Vietnam</div>
+                    <p style="font-size:0.75rem;color:#4a4a4a;line-height:1.65;margin:0;word-break:keep-all;"><span data-ko="부가세/관세 구조 최적화 지원" data-en="VAT/duty structure optimization">부가세/관세 구조 최적화 지원</span></p>
+                </div>
+            </div>
+            <div style="margin-top:1.35rem;" class="reveal">
+                <div style="font-size:0.68rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.8rem;"><span data-ko="취급 카테고리" data-en="Categories Handled">취급 카테고리</span></div>
+                <div style="display:flex;gap:0.7rem;flex-wrap:wrap;">
+                    <span style="border:1px solid rgba(0,0,0,0.12);border-radius:5px;padding:0.35rem 0.85rem;font-size:0.78rem;color:#1a1a1a;font-weight:500;background:#ffffff;word-break:keep-all;">Cosmetics</span>
+                    <span style="border:1px solid rgba(0,0,0,0.12);border-radius:5px;padding:0.35rem 0.85rem;font-size:0.78rem;color:#1a1a1a;font-weight:500;background:#ffffff;word-break:keep-all;">Household & Consumer Goods</span>
+                    <span style="border:1px solid rgba(0,0,0,0.12);border-radius:5px;padding:0.35rem 0.85rem;font-size:0.78rem;color:#1a1a1a;font-weight:500;background:#ffffff;word-break:keep-all;">Health Supplements</span>
+                    <span style="border:1px solid rgba(0,0,0,0.12);border-radius:5px;padding:0.35rem 0.85rem;font-size:0.78rem;color:#1a1a1a;font-weight:500;background:#ffffff;word-break:keep-all;">Processed Food</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 7: COLLABORATION
+    ══════════════════════════════════════════ -->
+    <div class="slide slide-7" data-slide="7">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:380px;height:380px;bottom:-80px;right:-60px;background:#ece9e4;opacity:0.5;"></div>
+        </div>
+        <div class="wm" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.05;">gsq</div>
+        <div class="logo-mark" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.16;">gsq</div>
+        <div class="content">
+            <span class="sec-label reveal">Collaboration</span>
+            <span class="rule reveal" style="background:linear-gradient(90deg,#1a1a1a,#7c69c5);"></span>
+            <h2 style="font-size:clamp(1.6rem,3vw,2.3rem);font-weight:700;color:#1a1a1a;line-height:1.25;margin-bottom:1.4rem;" class="reveal"><span data-ko="3가지 협업 방식" data-en="Three Collaboration Models">3가지 협업 방식</span></h2>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">
+                <div class="collab-card reveal" style="border-left-color:#1a1a1a;">
+                    <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.6rem;">Brand Direct</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:#1a1a1a;margin-bottom:0.5rem;word-break:keep-all;"><span data-ko="K-Brand 수출·해외영업팀" data-en="K-Brand Export &amp; Overseas Sales Teams">K-Brand 수출·해외영업팀</span></div>
+                    <p style="font-size:0.77rem;color:#4a4a4a;line-height:1.7;margin:0;word-break:keep-all;"><span data-ko="동남아 진출을 준비하는 브랜드사가 gsq를 단일 실행 파트너로 계약하는 방식. 규제 검토부터 판매채널 확장까지 하나의 흐름으로 관리합니다." data-en="Brands preparing for Southeast Asia entry contract gsq as a single execution partner. From regulatory review to channel expansion, all managed in one flow.">동남아 진출을 준비하는 브랜드사가 gsq를 단일 실행 파트너로 계약하는 방식. 규제 검토부터 판매채널 확장까지 하나의 흐름으로 관리합니다.</span></p>
+                </div>
+                <div class="collab-card reveal" style="border-left-color:#1a1a1a;">
+                    <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.6rem;">Platform Partnership</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:#1a1a1a;margin-bottom:0.5rem;word-break:keep-all;"><span data-ko="플랫폼사 및 파트너사" data-en="Platforms &amp; Partners">플랫폼사 및 파트너사</span></div>
+                    <p style="font-size:0.77rem;color:#4a4a4a;line-height:1.7;margin:0;word-break:keep-all;"><span data-ko="글로벌셀링 플랫폼·수출 지원 기업이 보유한 브랜드 풀에 동남아 현지 실행 역량을 공급하는 파트너 모델." data-en="A partnership model supplying Southeast Asia local execution capabilities to brand portfolios of global selling platforms and export support companies.">글로벌셀링 플랫폼·수출 지원 기업이 보유한 브랜드 풀에 동남아 현지 실행 역량을 공급하는 파트너 모델.</span></p>
+                </div>
+                <div class="collab-card reveal" style="border-left-color:#f0b400;background:#fcfaf4;">
+                    <div style="font-size:0.65rem;letter-spacing:0.14em;text-transform:uppercase;color:#8a8a8a;font-weight:500;margin-bottom:0.6rem;">Government & Programs</div>
+                    <div style="font-size:0.88rem;font-weight:700;color:#1a1a1a;margin-bottom:0.5rem;word-break:keep-all;"><span data-ko="정부지원사업 수행기관" data-en="Government Program Operators">정부지원사업 수행기관</span></div>
+                    <p style="font-size:0.77rem;color:#4a4a4a;line-height:1.7;margin:0;word-break:keep-all;"><span data-ko="수출지원사업 참여 기업에 규제·수입·운영·판매채널까지 연결하는 통합 실행 패키지. 단계별로 별도 공급자를 지정할 필요가 없는 구조를 제공합니다." data-en="An integrated execution package for companies in export support programs, connecting regulation, import, operations, and sales channels — no need to designate separate vendors at each stage.">수출지원사업 참여 기업에 규제·수입·운영·판매채널까지 연결하는 통합 실행 패키지. 단계별로 별도 공급자를 지정할 필요가 없는 구조를 제공합니다.</span></p>
+                </div>
+            </div>
+            <div style="margin-top:1.2rem;padding:0.9rem 1.2rem;border-top:2px solid #f0b400;background:#ffffff;" class="reveal">
+                <p style="font-size:0.8rem;color:#4a4a4a;line-height:1.65;margin:0;word-break:keep-all;"><span data-ko="gsq는 수출 교육 이후 실제 실행까지 연결하는 운영형 사업모델을 보유하고 있습니다. 규제, 수입, 물류, 판매운영을 하나의 체계 안에서 다루기 때문에 여러 단계별로 공급자를 따로 지정할 필요를 줄일 수 있습니다." data-en="gsq has an operational business model that connects export training to actual execution. Because regulation, import, logistics, and sales operations are handled within one system, the need to designate separate vendors at each stage is reduced.">gsq는 수출 교육 이후 실제 실행까지 연결하는 운영형 사업모델을 보유하고 있습니다. 규제, 수입, 물류, 판매운영을 하나의 체계 안에서 다루기 때문에 여러 단계별로 공급자를 따로 지정할 필요를 줄일 수 있습니다.</span></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 8: WHY gsq
+    ══════════════════════════════════════════ -->
+    <div class="slide slide-8" data-slide="8">
+        <div class="gradient-mesh">
+            <div class="blob" style="width:400px;height:400px;top:-80px;right:-80px;background:#ece9e4;opacity:0.5;"></div>
+        </div>
+        <div class="wm" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.05;">gsq</div>
+        <div class="logo-mark" style="font-family:'Anton','Aptos','Inter',sans-serif;opacity:0.16;">gsq</div>
+        <div class="content">
+            <span class="sec-label reveal">Why gsq</span>
+            <span class="rule reveal" style="background:linear-gradient(90deg,#1a1a1a,#7c69c5);"></span>
+            <h2 style="font-size:clamp(1.6rem,3vw,2.3rem);font-weight:700;color:#1a1a1a;line-height:1.25;margin-bottom:1.3rem;" class="reveal"><span data-ko="&lt;span style=&quot;font-family:&#x27;Anton&#x27;,&#x27;Aptos&#x27;,&#x27;Inter&#x27;,sans-serif;letter-spacing:-0.02em;font-weight:400;&quot;&gt;gsq&lt;/span&gt;를 선택해야 하는 이유" data-en="Why Choose &lt;span style=&quot;font-family:&#x27;Anton&#x27;,&#x27;Aptos&#x27;,&#x27;Inter&#x27;,sans-serif;letter-spacing:-0.02em;font-weight:400;&quot;&gt;gsq&lt;/span&gt;"><span style="font-family:'Anton','Aptos','Inter',sans-serif;letter-spacing:-0.02em;font-weight:400;">gsq</span>를 선택해야 하는 이유</span></h2>
+            <div style="display:flex;flex-direction:column;gap:0.2rem;">
+                <div class="why-row reveal">
+                    <div class="why-num">1</div>
+                    <div>
+                        <div style="font-size:0.85rem;font-weight:700;color:#1a1a1a;margin-bottom:0.2rem;word-break:keep-all;"><span data-ko="시장진입과 운영을 연결하는 구조" data-en="A Structure Connecting Market Entry and Operations">시장진입과 운영을 연결하는 구조</span></div>
+                        <p style="font-size:0.78rem;color:#4a4a4a;line-height:1.65;margin:0;word-break:keep-all;"><span data-ko="규제 검토, 수입, 창고, 판매채널 확장을 분절 없이 연결합니다. 브랜드의 해외사업팀이 실제로 활용할 수 있는 실무 중심 운영 체계입니다." data-en="We connect regulatory review, import, warehousing, and channel expansion without fragmentation — a practical, hands-on system brand overseas teams can actually use.">규제 검토, 수입, 창고, 판매채널 확장을 분절 없이 연결합니다. 브랜드의 해외사업팀이 실제로 활용할 수 있는 실무 중심 운영 체계입니다.</span></p>
+                    </div>
+                </div>
+                <div class="why-row reveal">
+                    <div class="why-num">2</div>
+                    <div>
+                        <div style="font-size:0.85rem;font-weight:700;color:#1a1a1a;margin-bottom:0.2rem;word-break:keep-all;"><span data-ko="현지 파트너십 기반 실행력 — 4개국 운영" data-en="Partnership-Based Local Execution — 4 Countries">현지 파트너십 기반 실행력 — 4개국 운영</span></div>
+                        <p style="font-size:0.78rem;color:#4a4a4a;line-height:1.65;margin:0;word-break:keep-all;"><span data-ko="싱가포르를 거점으로 4개국 운영을 총괄합니다. 현지 실행은 검증된 파트너와 함께 수행합니다." data-en="Operations across 4 countries are coordinated from our Singapore hub. Local execution is performed with vetted partners.">싱가포르를 거점으로 4개국 운영을 총괄합니다. 현지 실행은 검증된 파트너와 함께 수행합니다.</span></p>
+                    </div>
+                </div>
+                <div class="why-row reveal">
+                    <div class="why-num">3</div>
+                    <div>
+                        <div style="font-size:0.85rem;font-weight:700;color:#1a1a1a;margin-bottom:0.2rem;word-break:keep-all;"><span data-ko="Main Control Tower — 원채널 통제" data-en="Main Control Tower — One-Channel Control">Main Control Tower — 원채널 통제</span></div>
+                        <p style="font-size:0.78rem;color:#4a4a4a;line-height:1.65;margin:0;word-break:keep-all;"><span data-ko="브랜드는 복수의 공급자를 따로 관리하지 않고 gsq 단일 채널로 운영 현황을 파악할 수 있습니다." data-en="Instead of managing multiple vendors separately, brands get full operational visibility through a single gsq channel.">브랜드는 복수의 공급자를 따로 관리하지 않고 gsq 단일 채널로 운영 현황을 파악할 수 있습니다.</span></p>
+                    </div>
+                </div>
+                <div class="why-row reveal">
+                    <div class="why-num">4</div>
+                    <div>
+                        <div style="font-size:0.85rem;font-weight:700;color:#1a1a1a;margin-bottom:0.2rem;word-break:keep-all;"><span data-ko="검증된 운영 이력" data-en="Proven Operational Track Record">검증된 운영 이력</span></div>
+                        <p style="font-size:0.78rem;color:#4a4a4a;line-height:1.65;margin:0;word-break:keep-all;"><span data-ko="싱가포르 인증서비스 누적 200+ 브랜드 경험. 창고 서비스까지 포함한 실제 운영 레퍼런스 보유. 초기 플랫폼 협업 이력과 반복 운영 경험을 갖추고 있습니다." data-en="200+ brands in Singapore certification services. Real operational references including warehouse services. Early platform collaboration history and repeated execution experience.">싱가포르 인증서비스 누적 200+ 브랜드 경험. 창고 서비스까지 포함한 실제 운영 레퍼런스 보유. 초기 플랫폼 협업 이력과 반복 운영 경험을 갖추고 있습니다.</span></p>
+                    </div>
+                </div>
+                <div class="why-row reveal">
+                    <div class="why-num" style="background:#f0b400;color:#1a1a1a;">5</div>
+                    <div>
+                        <div style="font-size:0.85rem;font-weight:700;color:#1a1a1a;margin-bottom:0.2rem;word-break:keep-all;"><span data-ko="소규모 정예형 운영 구조" data-en="Lean Expert-Team Structure">소규모 정예형 운영 구조</span></div>
+                        <p style="font-size:0.78rem;color:#4a4a4a;line-height:1.65;margin:0;word-break:keep-all;"><span data-ko="핵심 단계에 집중해 빠르게 대응하고, 필요한 국가와 채널로 정밀하게 확장할 수 있는 운영 구조를 제공합니다." data-en="Focused on key stages for rapid response, with an operational structure for precise expansion into needed countries and channels.">핵심 단계에 집중해 빠르게 대응하고, 필요한 국가와 채널로 정밀하게 확장할 수 있는 운영 구조를 제공합니다.</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════
+         SLIDE 9: CLOSING
+    ══════════════════════════════════════════ -->
+    <div class="slide slide-9" data-slide="9">
+        <!-- Dark right panel -->
+        <div class="cover-block" style="background:#1a1a1a;"></div>
+        <div class="cover-gold-bar"></div>
+        <div class="content" style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:0;align-items:center;padding-right:0;">
+            <div style="padding-right:3rem;">
+                <span class="sec-label reveal" style="color:#8a8a8a;">Next Step</span>
+                <span class="rule reveal" style="background:linear-gradient(90deg,#1a1a1a,#7c69c5);"></span>
+                <h2 style="font-size:clamp(1.6rem,3vw,2.4rem);font-weight:700;color:#1a1a1a;line-height:1.3;margin-bottom:1.2rem;" class="reveal"><span data-ko="K-Beauty 동남아 진출,&lt;br&gt;gsq와 함께 실행하세요" data-en="Execute Your K-Beauty&lt;br&gt;Southeast Asia Entry with gsq">K-Beauty 동남아 진출,<br>gsq와 함께 실행하세요</span></h2>
+                <p style="font-size:0.88rem;color:#4a4a4a;line-height:1.8;max-width:380px;word-break:keep-all;" class="reveal"><span data-ko="gsq는 컴플라이언스·수입·유통·채널 실행 체계를 갖춘 동남아 현지 파트너입니다. 브랜드 상황에 맞는 가장 현실적인 진출 경로를 함께 설계합니다." data-en="gsq is your Southeast Asia local partner with a complete compliance, import, distribution, and channel execution system. We design the most realistic market entry path tailored to your brand.">gsq는 컴플라이언스·수입·유통·채널 실행 체계를 갖춘 동남아 현지 파트너입니다. 브랜드 상황에 맞는 가장 현실적인 진출 경로를 함께 설계합니다.</span></p>
+                <div style="margin-top:2rem;" class="reveal">
+                    <span class="rule-lg"></span>
+                </div>
+                <a href="http://pf.kakao.com/_iUmgb" target="_blank" rel="noopener" class="reveal kakao-cta" style="display:inline-flex;align-items:center;gap:0.6rem;background:#FEE500;color:#1a1a1a;padding:0.95rem 1.6rem;border-radius:10px;text-decoration:none;font-weight:700;font-size:0.92rem;margin-top:1.6rem;box-shadow:0 4px 14px rgba(254,229,0,0.35);transition:transform 0.2s, box-shadow 0.2s;">
+                    <svg width="20" height="20" viewBox="0 0 18 18" fill="#1a1a1a" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                        <path d="M9 2C4.86 2 1.5 4.69 1.5 8c0 2.13 1.41 4 3.55 5.07-.15.57-.55 2.04-.63 2.36-.1.4.14.4.31.29.21-.13 2.06-1.4 2.88-1.96.46.07.93.1 1.39.1 4.14 0 7.5-2.69 7.5-6S13.14 2 9 2z"/>
+                    </svg>
+                    <span data-ko="카카오채널 상담" data-en="Chat on KakaoTalk">카카오채널 상담</span>
+                </a>
+                
+            </div>
+            <!-- Right: dark side -->
+            <div style="position:relative;z-index:2;padding-left:3.5rem;padding-right:3rem;">
+                <div class="reveal">
+                    <div style="font-size:0.68rem;letter-spacing:0.16em;text-transform:uppercase;color:rgba(255,255,255,0.35);font-weight:500;margin-bottom:1.2rem;">One-Channel Platform</div>
+                    <div style="display:flex;flex-direction:column;gap:0.8rem;">
+                        <div style="display:flex;gap:0.8rem;align-items:flex-start;">
+                            <span style="width:2px;height:100%;background:#f0b400;flex-shrink:0;display:inline-block;min-height:14px;margin-top:3px;"></span>
+                            <div>
+                                <div style="font-size:0.8rem;font-weight:600;color:#ffffff;word-break:keep-all;">Market Entry Advisory</div>
+                                <div style="font-size:0.72rem;color:rgba(255,255,255,0.45);word-break:keep-all;"><span data-ko="규제 검토 · 상품 등록" data-en="Regulatory review · Product registration">규제 검토 · 상품 등록</span></div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:0.8rem;align-items:flex-start;">
+                            <span style="width:2px;min-height:14px;margin-top:3px;background:#f0b400;flex-shrink:0;display:inline-block;"></span>
+                            <div>
+                                <div style="font-size:0.8rem;font-weight:600;color:#ffffff;word-break:keep-all;">Freight & IOR</div>
+                                <div style="font-size:0.72rem;color:rgba(255,255,255,0.45);word-break:keep-all;"><span data-ko="포워딩 · 수입대행" data-en="Forwarding · Import services">포워딩 · 수입대행</span></div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:0.8rem;align-items:flex-start;">
+                            <span style="width:2px;min-height:14px;margin-top:3px;background:#f0b400;flex-shrink:0;display:inline-block;"></span>
+                            <div>
+                                <div style="font-size:0.8rem;font-weight:600;color:#ffffff;word-break:keep-all;">Warehousing & Fulfilment</div>
+                                <div style="font-size:0.72rem;color:rgba(255,255,255,0.45);word-break:keep-all;"><span data-ko="현지 창고 · 4PL 솔루션" data-en="Local warehouse · 4PL solutions">현지 창고 · 4PL 솔루션</span></div>
+                            </div>
+                        </div>
+                        <div style="display:flex;gap:0.8rem;align-items:flex-start;">
+                            <span style="width:2px;min-height:14px;margin-top:3px;background:#f0b400;flex-shrink:0;display:inline-block;"></span>
+                            <div>
+                                <div style="font-size:0.8rem;font-weight:600;color:#ffffff;word-break:keep-all;">Channel Operations</div>
+                                <div style="font-size:0.72rem;color:rgba(255,255,255,0.45);word-break:keep-all;"><span data-ko="Shopee · TikTok Shop 운영" data-en="Shopee · TikTok Shop operations">Shopee · TikTok Shop 운영</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /deck -->
+
+<div class="nav-controls">
+    <button class="nav-btn" onclick="changeSlide(-1)">&#8249;</button>
+    <div class="slide-dots" id="dots"></div>
+    <button class="nav-btn" onclick="changeSlide(1)">&#8250;</button>
+    <span class="slide-counter" id="counter">1 / 9</span>
+</div>
+
+<script>
+    // Scroll-based reveal animations + section jumper (replaces slide deck behavior)
+    const slides = document.querySelectorAll('.slide');
+    const total = slides.length;
+    const dotsContainer = document.getElementById('dots');
+    const counter = document.getElementById('counter');
+    let current = 1;
+
+    // Build dots — clicking jumps to that section
+    for (let i = 1; i <= total; i++) {
+        const dot = document.createElement('div');
+        dot.className = 'dot' + (i === 1 ? ' active' : '');
+        dot.onclick = () => goToSlide(i);
+        dotsContainer.appendChild(dot);
+    }
+
+    function goToSlide(n) {
+        const target = document.querySelector(`.slide[data-slide="${n}"]`);
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    function changeSlide(dir) {
+        let n = current + dir;
+        if (n < 1) n = 1;
+        if (n > total) n = total;
+        goToSlide(n);
+    }
+    function updateNav(n) {
+        current = n;
+        document.querySelectorAll('.dot').forEach((d, i) => d.classList.toggle('active', i + 1 === n));
+        counter.textContent = n + ' / ' + total;
+    }
+
+    // Keyboard: arrows still jump section-to-section on desktop
+    document.addEventListener('keydown', e => {
+        if (e.key === 'ArrowDown' || e.key === 'PageDown') { e.preventDefault(); changeSlide(1); }
+        if (e.key === 'ArrowUp' || e.key === 'PageUp') { e.preventDefault(); changeSlide(-1); }
+    });
+
+    // Reveal animation per slide (fires when slide enters viewport)
+    function animateSlide(slide) {
+        slide.querySelectorAll('.reveal').forEach((el, i) => {
+            el.style.transition = 'none';
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(14px)';
+            el.offsetHeight;
+            const delay = i * 0.065;
+            el.style.transition = `opacity 0.32s ease ${delay}s, transform 0.32s ease ${delay}s`;
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+        });
+        slide.querySelectorAll('[data-count]:not(.counted)').forEach(el => {
+            el.classList.add('counted');
+            const target = parseInt(el.dataset.count);
+            let cur = 0;
+            const step = target / 40;
+            const timer = setInterval(() => {
+                cur += step;
+                if (cur >= target) { cur = target; clearInterval(timer); }
+                el.textContent = Math.round(cur).toLocaleString();
+            }, 30);
+        });
+    }
+
+    // IntersectionObserver: trigger reveal + update counter when each slide enters view
+    const io = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const n = parseInt(entry.target.dataset.slide);
+                if (!entry.target.classList.contains('active')) {
+                    entry.target.classList.add('active');
+                    animateSlide(entry.target);
+                }
+                updateNav(n);
+            }
+        });
+    }, { threshold: 0.35 });
+    slides.forEach(s => io.observe(s));
+
+    // First slide reveal on load
+    try { animateSlide(slides[0]); slides[0].classList.add('active'); } catch(e) {}
+
+    // ─── Language toggle (KO / EN) ───
+    const I18N_ELEMENTS = document.querySelectorAll('[data-ko][data-en]');
+    const LANG_BUTTONS = document.querySelectorAll('.lang-toggle button');
+
+    function setLang(lang) {
+        if (lang !== 'ko' && lang !== 'en') return;
+        document.documentElement.lang = lang;
+        try { localStorage.setItem('gsq.lang', lang); } catch(e) {}
+        I18N_ELEMENTS.forEach(el => {
+            const val = el.dataset[lang];
+            if (val !== undefined) el.innerHTML = val;
+        });
+        LANG_BUTTONS.forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+    }
+
+    LANG_BUTTONS.forEach(b => b.addEventListener('click', () => setLang(b.dataset.lang)));
+
+    // Restore saved preference, otherwise detect browser language
+    try {
+        const saved = localStorage.getItem('gsq.lang');
+        if (saved === 'en' || saved === 'ko') {
+            setLang(saved);
+        } else if ((navigator.language || '').toLowerCase().startsWith('en')) {
+            setLang('en');
+        }
+    } catch(e) {}
+</script>
+</body>
+</html>
